@@ -6,3 +6,4 @@ a shell for nvim kernel
 * lua REPL with state
 * run EX command, but no scripting, no state
 * run cli command, but no scripting, no state
+* take over nvim command-line
