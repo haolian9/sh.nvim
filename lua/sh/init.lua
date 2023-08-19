@@ -14,6 +14,8 @@
 local bufrename = require("infra.bufrename")
 local Ephemeral = require("infra.Ephemeral")
 local handyclosekeys = require("infra.handyclosekeys")
+local bufmap = require("infra.keymap.buffer")
+local nvimkeys = require("infra.nvimkeys")
 local popupgeo = require("infra.popupgeo")
 local prefer = require("infra.prefer")
 
@@ -62,8 +64,25 @@ do
 
     bufnr = Ephemeral({ buftype = "prompt", bufhidden = "hide" })
     bufrename(bufnr, "sh://")
-    handyclosekeys(bufnr)
     change_prompt(bufnr, true)
+
+    do
+      handyclosekeys(bufnr)
+
+      local bm = bufmap.wraps(bufnr)
+
+      bm.i("<c-w>", "<s-c-w>")
+
+      local function cmpline(self)
+        return function()
+          local keys = vim.fn.pumvisible() == 0 and "<c-x><c-l>" or self
+          api.nvim_feedkeys(nvimkeys(keys), "n", false)
+        end
+      end
+      bm.i("<c-n>", cmpline("<c-n>"))
+      bm.i("<c-p>", cmpline("<c-p>"))
+      prefer.bo(bufnr, "complete", ".")
+    end
 
     api.nvim_create_autocmd("bufhidden", { buffer = bufnr, callback = function() stay_clean(bufnr) end })
 
