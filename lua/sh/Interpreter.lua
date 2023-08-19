@@ -53,7 +53,7 @@ do
 
   ---@param line string
   ---@return Interpret?
-  local function triage(line)
+  function triage(line)
     do
       local char0 = string.sub(line, 1, 1)
       if char0 == ":" then return interpreters.vimscript end
