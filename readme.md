@@ -1,19 +1,21 @@
-a shell for nvim kernel
+a shell around nvim kernel
 
-## status: far from usable
+## status
+* far from usable
 
-## design, ideas
+## design/limits
 * shell like experience
 * lua REPL with state
-* recognize specific EX commands, but no scripting, no state
-* able to overwrite specific EX commands
-* ~~run cli command, but no scripting, no state~~
-* take over nvim command-line
+* EX cmd whitelist, BUT no state
+* able to overwrite specific EX cmds
+* sh/cli cmd whitelist, BUT no state
+* take over builtin cmdline ui
 * make use of lsp if possible
 * make use of treesitter if possible
 
-## inspirations
-* https://github.com/ii14/neorepl.nvim
-* https://github.com/bfredl/nvim-luadev
-* https://github.com/Vigemus/iron.nvim
-* https://github.com/mrcjkb/haskell-tools.nvim
+## todo
+* avoid 'prompt buffer'
+    * weird <c-w>
+    * broken completion
+    * nonsense setprompt(bo.modified = false)
+* use inline extmark to simulate transient prompt
