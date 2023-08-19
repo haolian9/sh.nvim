@@ -15,7 +15,8 @@ a shell around nvim kernel
 
 ## todo
 * avoid 'prompt buffer'
-    * weird <c-w>
+    * ~~weird <c-w>~~ fixable
     * broken completion
-    * nonsense setprompt(bo.modified = false)
+    * ~~nonsense setprompt(bo.modified = false)~~ fixable
+    * impossible multiple lines
 * use inline extmark to simulate transient prompt
