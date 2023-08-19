@@ -30,8 +30,8 @@ local win_id = api.nvim_open_win(bufnr, true, {
   relative = "editor",
   row = 3,
   col = 3,
-  width = math.floor(vim.o.columns * 0.8),
-  height = math.floor(vim.o.lines * 0.6),
+  width = math.floor(vim.go.columns * 0.8),
+  height = math.floor(vim.go.lines * 0.6),
   style = "minimal",
 })
 vim.cmd.startinsert()
