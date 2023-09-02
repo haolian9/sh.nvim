@@ -4,19 +4,20 @@ a shell around nvim kernel
 * far from usable
 
 ## design/limits
-* shell like experience
 * lua REPL with state
-* EX cmd whitelist, BUT no state
-* able to overwrite specific EX cmds
-* sh/cli cmd whitelist, BUT no state
-* take over builtin cmdline ui
-* make use of lsp if possible
-* make use of treesitter if possible
+* make some EX cmds accessible
+* make some sh/cli cmds accessible
+* user defined cmds
+* usable lua completion
+* behave like a shell (define it)
 
 ## todo
-* avoid 'prompt buffer'
-    * ~~weird <c-w>~~ fixable
-    * broken completion
+* ~~avoid 'prompt buffer'~~
+    * ~~weird `<c-w>`~~ `<s-c-w>`
+    * ~~broken completion~~ `vim.lua_omnifunc`
     * ~~nonsense setprompt(bo.modified = false)~~ fixable
     * impossible multiple lines
-* use inline extmark to simulate transient prompt
+* input history
+    * normal j/k
+* transient prompt based on inline extmark
+* ~~take over builtin cmdline ui~~
