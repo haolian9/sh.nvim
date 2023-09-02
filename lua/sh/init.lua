@@ -7,38 +7,26 @@
 --* no distiguishing between stdout and stderr
 --
 --todo: support colored prompt? "\x1b[31m>\x1b[39m "?
---todo: clear
---todo: <c-w>?
+--todo: :clear
+--todo: history
 --
 
-local bufrename = require("infra.bufrename")
+local Augroup = require("infra.Augroup")
 local Ephemeral = require("infra.Ephemeral")
-local handyclosekeys = require("infra.handyclosekeys")
+local ex = require("infra.ex")
 local bufmap = require("infra.keymap.buffer")
-local nvimkeys = require("infra.nvimkeys")
-local popupgeo = require("infra.popupgeo")
 local prefer = require("infra.prefer")
+local rifts = require("infra.rifts")
 
-local facts = require("sh.facts")
 local Interpreter = require("sh.Interpreter")
 
 local api = vim.api
 
-local get_bufnr
+local new_buf
 do
   ---@param bufnr integer
-  local function stay_clean(bufnr, scheduled)
-    if scheduled then
-      vim.schedule(function() prefer.bo(bufnr, "modified", false) end)
-    else
-      prefer.bo(bufnr, "modified", false)
-    end
-  end
-
-  ---@param bufnr integer
-  ---@param lines string|string[]
-  local function extends(bufnr, lines)
-    assert(lines ~= nil and type(lines) == "table")
+  ---@param lines string[]
+  local function append_lines(bufnr, lines)
     if #lines == 0 then return end
     api.nvim_buf_set_lines(bufnr, -2, -1, false, lines)
   end
@@ -57,61 +45,50 @@ do
 
   local interpreter = Interpreter()
 
-  local bufnr
-
-  function get_bufnr()
-    if bufnr ~= nil then return bufnr end
-
-    bufnr = Ephemeral({ buftype = "prompt", bufhidden = "hide" })
-    bufrename(bufnr, "sh://")
-    change_prompt(bufnr, true)
+  function new_buf()
+    local bufnr = Ephemeral({ buftype = "prompt", bufhidden = "hide", handyclose = true, name = "sh://" })
 
     do
-      handyclosekeys(bufnr)
-
       local bm = bufmap.wraps(bufnr)
-
+      --make <c-w> normal
       bm.i("<c-w>", "<s-c-w>")
-
-      local function cmpline(self)
-        return function()
-          local keys = vim.fn.pumvisible() == 0 and "<c-x><c-l>" or self
-          api.nvim_feedkeys(nvimkeys(keys), "n", false)
-        end
-      end
-      bm.i("<c-n>", cmpline("<c-n>"))
-      bm.i("<c-p>", cmpline("<c-p>"))
-      prefer.bo(bufnr, "complete", ".")
+      --completion
+      prefer.bo(bufnr, "omnifunc", "v:lua.vim.lua_omnifunc")
+      bm.i("<c-n>", "<C-x><C-o>")
+      bm.i(".", [[.<c-x><c-o>]])
     end
 
-    api.nvim_create_autocmd("bufhidden", { buffer = bufnr, callback = function() stay_clean(bufnr) end })
+    local function stay_clean() prefer.bo(bufnr, "modified", false) end
+
+    local aug = Augroup.buf(bufnr, true)
+    aug:repeats("bufhidden", { buffer = bufnr, callback = stay_clean })
 
     vim.fn.prompt_setcallback(bufnr, function(line)
       --just <cr>
-      if line == "" then return stay_clean(bufnr, true) end
+      if line == "" then return stay_clean() end
 
       assert(coroutine.resume(interpreter))
       local _, ok, results = assert(coroutine.resume(interpreter, line))
-      extends(bufnr, results)
+      append_lines(bufnr, results)
       change_prompt(bufnr, ok)
-      stay_clean(bufnr, true)
+      vim.schedule(stay_clean)
     end)
 
-    stay_clean(bufnr)
+    change_prompt(bufnr, true)
+    stay_clean()
 
     return bufnr
   end
 end
 
+local bufnr
+
 return function()
-  local bufnr = get_bufnr()
+  if bufnr == nil then bufnr = new_buf() end
   assert(api.nvim_buf_is_valid(bufnr))
 
-  do
-    local width, height, row, col = popupgeo.editor_central(0.8, 0.8)
-    local winid = api.nvim_open_win(bufnr, true, { relative = "editor", border = "single", row = row, col = col, width = width, height = height })
-    api.nvim_win_set_hl_ns(winid, facts.floatwin_ns)
-  end
+  local winid = rifts.open.fragment(bufnr, true, { relative = "editor", border = "single" }, { width = 0.8, height = 0.3, vertical = "bot" })
+  prefer.wo(winid, "wrap", true)
 
-  vim.cmd.startinsert()
+  ex("startinsert")
 end

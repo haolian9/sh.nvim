@@ -49,7 +49,7 @@ do
     ex[name] = nil
   end
 
-  local sh = fn.toset({ "pwd", "realpath" })
+  local sh = fn.toset({ "realpath" })
 
   ---@param line string
   ---@return Interpret?
